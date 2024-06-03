@@ -101,6 +101,14 @@ def generate_prompt(question, summaries):
     prompt = prompt_template.format(question=question, summaries='\n'.join(summaries[0]))
     return prompt
     
+
+async def collect_content(async_gen):
+    text = ""
+    async for item in async_gen:
+        text += item
+    return text
+    
+
       
 async def query_models_async(user_query:str, generative_models) -> List[ModelResponse]:
     """
@@ -111,14 +119,18 @@ async def query_models_async(user_query:str, generative_models) -> List[ModelRes
     """
     data= [{"role": "system", "content": user_query}]
     model_names = ['gpt-3.5-turbo response', 'gpt-4-turbo response', 
-                   'llama-2-7b-insruct', 'falcon-7b-instruct'
+                   'llama-2-7b-insruct', 
+                #    'falcon-7b-instruct'
                    ]
+
+
     tasks = [generative_models['gpt-3.5-turbo'].generate(data),
     generative_models['gpt-4-turbo'].generate(data),
     generative_models['llama-2-7b-instruct'].generate(user_query),
     generative_models['falcon-7b-instruct'].generate(user_query)
     ]
     responses = await asyncio.gather(*tasks)
+    del responses[-1] 
     model_responses = [ModelResponse(model_name=model_name,response=response['text']) for model_name, response in zip(model_names, responses)]
     return model_responses
 
@@ -154,6 +166,8 @@ def evaluate_responses(generative_models: Dict, request: ModelEvalRequest) -> Mo
         model_faithfulness = row.faithfulness
         model_answer_relevancy = row.answer_relevancy
         total_score = model_faithfulness + model_answer_relevancy
+
+        breakpoint()
         model_evaluations.append(ModelEvaluation(
             model_name=model_response.model_name,
             faithfulness=model_faithfulness,

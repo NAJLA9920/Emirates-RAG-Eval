@@ -134,8 +134,7 @@ class OpenAIReg(LLMGen):
         text = response.choices[0].message.content
         return self._format_output(text)
     
-    
-    
+
 
 class OpenAIStream():
     """
@@ -222,9 +221,9 @@ class Replicate():
         input = {
             "top_p": 1,
             "prompt": user_query,
-            "temperature": 0.0,
+            "temperature": 0.01,
             "system_prompt": "You are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe. Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content. Please ensure that your responses are socially unbiased and positive in nature.\n\nIf a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information.",
-            "max_new_tokens": 10
+            "max_new_tokens": 500
         }
 
         return self.client.stream(
@@ -268,8 +267,12 @@ class ReplicateReg():
         Returns:
             dict: A dictionary containing the formatted text.
         """
-        return { "text": text }
-    
+        if isinstance(text, list):
+            return { "text": ''.join(text) }
+        else:
+            return { "text": text }
+
+
     async def generate(self, user_query: str):
         """
         Generates text based on the provided user query using the Replicate API with a custom system prompt.
@@ -283,9 +286,9 @@ class ReplicateReg():
         input = {
             "top_p": 1,
             "prompt": user_query,
-            "temperature": 0.0,
+            "temperature": 0.01,
             "system_prompt": "You are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe. Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content. Please ensure that your responses are socially unbiased and positive in nature.\n\nIf a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information.",
-            "max_new_tokens": 10
+            "max_new_tokens": 500
         }
 
         response = await self.client.async_run(self.model, input=input)
