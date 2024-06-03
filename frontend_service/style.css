@@ -1,0 +1,38 @@
+body,
+html {
+    font-family: Arial, sans-serif;
+    padding: 0;
+    margin: 0;
+    background-color: #f4f4f4;
+}
+
+.container {
+    max-width: 600px;
+    margin: auto;
+    padding: 20px;
+    text-align: center;
+}
+
+input[type="text"],
+button {
+    margin: 10px 0;
+    padding: 10px;
+    font-size: 16px;
+}
+
+button {
+    cursor: pointer;
+}
+
+#modelResponses div,
+#evaluationResult {
+    text-align: left;
+    margin-top: 20px;
+    padding: 10px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+}
+
+#modelResponses h3 {
+    margin: 0;
+}

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>WebSocket Test</title>
+</head>
+
+<body>
+    <h2>Test WebSocket Endpoint</h2>
+    <input type="text" id="userQuery" placeholder="Enter your query here">
+    <button id="sendButton" onclick="initiateConnectionAndSend()">Send</button>
+    <p>Response from GPT-3.5 Turbo:</p>
+    <pre id="responseGPT35"></pre>
+    <p>Response from GPT-4 Turbo:</p>
+    <pre id="responseGPT4"></pre>
+
+    <script>
+        function initiateConnectionAndSend() {
+            const ws = new WebSocket('ws://127.0.0.2:9007/api/ws/model-output');
+            const sendButton = document.getElementById('sendButton');
+            sendButton.disabled = true; // Disable the button until response is received
+
+            ws.onopen = function(event) {
+                console.log("Connection opened");
+                const userQuery = document.getElementById('userQuery').value;
+                ws.send(userQuery);
+            };
+
+            ws.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                if (data['gpt-3.5-turbo']) {
+                    document.getElementById('responseGPT35').textContent += data['gpt-3.5-turbo'] + " ";
+                }
+                if (data['gpt-4-turbo']) {
+                    document.getElementById('responseGPT4').textContent += data['gpt-4-turbo'] + " ";
+                }
+                // Do not close the connection here to allow for multiple messages
+            };
+
+            ws.onerror = function(event) {
+                console.error("WebSocket error observed:", event);
+                sendButton.disabled = false; // Re-enable the button on error
+            };
+
+            ws.onclose = function(event) {
+                console.log("Connection closed");
+                sendButton.disabled = false; // Re-enable the button once the connection is closed
+            };
+        }
+    </script>
+</body>
+
+</html>
