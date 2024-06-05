@@ -98,16 +98,11 @@ def generate_prompt(question, summaries):
     :param summaries: A list of summaries to include in the prompt.
     :return: A string containing the generated prompt.
     """
-    prompt = prompt_template.format(question=question, summaries='\n'.join(summaries[0]))
+    summaries = summaries[0]
+    summaries = [f"Source #{i+1}\n {summary}" for i, summary in enumerate(summaries)]
+    prompt = prompt_template.format(question=question, summaries='\n'.join(summaries))
     return prompt
-    
-
-async def collect_content(async_gen):
-    text = ""
-    async for item in async_gen:
-        text += item
-    return text
-    
+      
 
       
 async def query_models_async(user_query:str, generative_models) -> List[ModelResponse]:
@@ -118,19 +113,20 @@ async def query_models_async(user_query:str, generative_models) -> List[ModelRes
     :return: A list of ModelResponse objects containing the models' responses.
     """
     data= [{"role": "system", "content": user_query}]
-    model_names = ['gpt-3.5-turbo response', 'gpt-4-turbo response', 
-                   'llama-2-7b-insruct', 
-                #    'falcon-7b-instruct'
+    model_names = [
+        'gpt-3.5-turbo response', 'gpt-4-turbo response', 
+                   'llama-2-70b-chat', 
+                   'falcon-40b-instruct'
                    ]
 
 
-    tasks = [generative_models['gpt-3.5-turbo'].generate(data),
-    generative_models['gpt-4-turbo'].generate(data),
-    generative_models['llama-2-7b-instruct'].generate(user_query),
-    generative_models['falcon-7b-instruct'].generate(user_query)
+    tasks = [
+        generative_models['gpt-3.5-turbo'].generate(data),
+        generative_models['gpt-4-turbo'].generate(data),
+        generative_models['llama-2-70b-chat'].generate(user_query),
+        generative_models['falcon-40b-instruct'].generate(user_query)
     ]
     responses = await asyncio.gather(*tasks)
-    del responses[-1] 
     model_responses = [ModelResponse(model_name=model_name,response=response['text']) for model_name, response in zip(model_names, responses)]
     return model_responses
 
@@ -158,7 +154,7 @@ def evaluate_responses(generative_models: Dict, request: ModelEvalRequest) -> Mo
     result = evaluate(
         eval_dataset,
         metrics=[faithfulness, answer_relevancy],
-        llm=generative_models['gpt-4-eval'],
+        llm=generative_models['gpt-3.5-turbo-eval'],
     )
     df = result.to_pandas()
     # Process evaluation results
@@ -166,8 +162,6 @@ def evaluate_responses(generative_models: Dict, request: ModelEvalRequest) -> Mo
         model_faithfulness = row.faithfulness
         model_answer_relevancy = row.answer_relevancy
         total_score = model_faithfulness + model_answer_relevancy
-
-        breakpoint()
         model_evaluations.append(ModelEvaluation(
             model_name=model_response.model_name,
             faithfulness=model_faithfulness,
@@ -177,39 +171,3 @@ def evaluate_responses(generative_models: Dict, request: ModelEvalRequest) -> Mo
             highest_score = total_score
             best_model = model_response.model_name
     return ModelEvalResponse(model_evaluations=model_evaluations, best_model=best_model)
-
-
-# def evaluate_responses(generative_models:Dict, request: ModelEvalRequest):
-#     """
-#     Evaluates the responses from different models based on faithfulness and relevancy metrics.
-#     :param generative_models: A dictionary containing the generative models used for evaluation.
-#     :param request: The ModelEvalRequest object containing the query, model responses, and contexts.
-#     :return: A ModelEvalResponse object containing the evaluations and the name of the best model.
-#     """
-#     model_evaluations = []
-#     max_score = 0
-#     best_model_index = 0
-#     eval_samples = {
-#     'question': [request.query for _ in range(len(request.model_responses))],
-#     'answer': [model_response.response for model_response in request.model_responses],
-#     'contexts' :[request.contexts for _ in range(len(request.model_responses))],
-#     }
-#     eval_dataset = Dataset.from_dict(eval_samples)
-#     result = evaluate(
-#     eval_dataset,
-#     metrics=[
-#         faithfulness,
-#         answer_relevancy,
-#     ],
-#     llm=generative_models['gpt-4-eval'],
-#     )
-#     df = result.to_pandas()
-#     for index, row in df.iterrows():
-#         model_faithfulness = row['faithfulness']
-#         model_answer_relevancy = row['answer_relevancy']
-#         total_score = model_faithfulness + model_answer_relevancy
-#         if total_score > max_score:
-#             max_score = total_score
-#             best_model_index = index
-#         model_evaluations.append(ModelEvaluation(model_name=request.model_responses[index].model_name,faithfulness=model_faithfulness,relevance=model_answer_relevancy))
-#     return ModelEvalResponse(model_evaluations=model_evaluations,best_model=request.model_responses[best_model_index].model_name)

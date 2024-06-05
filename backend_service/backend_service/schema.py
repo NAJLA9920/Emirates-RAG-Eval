@@ -57,7 +57,7 @@ class ModelEvaluation(BaseModel):
         relevance (float): The relevance score of the model's response.
     """
     model_name: str
-    faithfulness: str
+    faithfulness: float
     relevance: float
     
     

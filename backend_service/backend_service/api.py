@@ -8,7 +8,6 @@ from backend_service.schema import QueryRequest, ModelEvalRequest, ModelEvalResp
 CHROMADB_COLLECTION = {}
 GENERATIVE_MODELS = {}
 
-
 REPLICATE_API_TOKEN = os.environ["REPLICATE_API_TOKEN"] 
 
 
@@ -103,44 +102,3 @@ async def evaluate_model_responses(request: ModelEvalRequest) -> ModelEvalRespon
     """
     evaluated_responses = evaluate_responses(GENERATIVE_MODELS,request)
     return evaluated_responses
-
-
-
-# @router.websocket("/ws/model-output")
-# async def query_websocket_endpoint(websocket: WebSocket):
-#     """
-#     WebSocket endpoint to stream model outputs based on user queries.
-
-#     This endpoint accepts a WebSocket connection, receives a user query, and streams the output
-#     from multiple generative models back to the client.
-
-#     Args:
-#         websocket (WebSocket): The WebSocket connection instance.
-
-#     Raises:
-#         Exception: If an error occurs during the WebSocket communication.
-#     """
-#     await websocket.accept()
-#     try:
-#         user_query = await websocket.receive_text()  # Receive the entire user input at once
-#         data= [{"role": "system", "content": user_query}]
-#         model_output_stream = GENERATIVE_MODELS['gpt-3.5-turbo-stream'].generate(data)
-#         for chunk in model_output_stream:
-#             if chunk.choices[0].delta.content is not None:
-#                 await websocket.send_json({'gpt-3.5-turbo':chunk.choices[0].delta.content})
-                
-#         model_output_stream = GENERATIVE_MODELS['gpt-4-turbo-stream'].generate(data)
-#         for chunk in model_output_stream:
-#             if chunk.choices[0].delta.content is not None:
-#                 await websocket.send_json({'gpt-4-turbo':chunk.choices[0].delta.content})
-
-#         for text_chunk in GENERATIVE_MODELS['llama-2-70b-chat-stream'].generate(user_query):
-#             await websocket.send_json({'llama-2-70b-chat':text_chunk})
-        
-#         for text_chunk in GENERATIVE_MODELS['falcon-40b-instruct-stream'].generate(user_query):
-#             await websocket.send_json({'falcon-40b-instruct':text_chunk})
-            
-#     except Exception as e:
-#         print(f"Error: {e}")
-#     finally:
-#         await websocket.close()  # Close the connection after streaming all words
