@@ -4,7 +4,7 @@ from utils import preprocess_data, batch_generator
 from embedding_func import CustomEmbeddingFunction
 
 
-DATA_FILE_PATH = '/scrapped_data/scrapped_data_v2.csv'
+DATA_FILE_PATH = './scrapped_data/scrapped_data_v2.csv'
 COLLECTION_NAME = 'info-services-index'
 CHROMADB_STORAGE_PATH = '/content/chroma'
 

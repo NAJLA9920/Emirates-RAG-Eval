@@ -1,3 +1,6 @@
+from dotenv import load_dotenv
+
+load_dotenv()  # take environment variables from .env.
 import uvicorn
 from backend_service.helper_functions import get_port, setup_logger
 
